@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>解く アクセス分析ダッシュボード</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+  :root { --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb; --accent:#0d9488; --bg:#f8fafc; --note:#8b5cf6; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:"Yu Gothic","Meiryo",sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:#fff; border-bottom:1px solid var(--line); padding:16px 24px; }
+  header h1 { margin:0; font-size:18px; color:var(--accent); }
+  header .meta { color:var(--sub); font-size:13px; margin-top:4px; }
+  .badge { display:inline-block; background:#fde68a; color:#92400e; font-size:11px; padding:2px 8px; border-radius:999px; margin-left:8px; }
+  main { max-width:1100px; margin:0 auto; padding:20px 16px 60px; }
+  h2 { font-size:16px; border-left:4px solid var(--accent); padding-left:10px; margin:28px 0 12px; }
+  h2.note-sec { border-left-color: var(--note); }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+  .card .label { color:var(--sub); font-size:12px; }
+  .card .num { font-size:26px; font-weight:700; margin-top:4px; }
+  .card .delta { font-size:12px; margin-top:2px; }
+  .up { color:#059669; } .down { color:#dc2626; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .panel { background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+  .panel h3 { margin:0 0 10px; font-size:13px; color:var(--sub); font-weight:600; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); }
+  th { color:var(--sub); font-weight:600; }
+  td.r,th.r { text-align:right; }
+  canvas { max-height:240px; }
+  .note-highlight { border-left:4px solid var(--note); }
+  .q-bar { display:flex; align-items:center; gap:6px; margin:3px 0; }
+  .q-bar .bar { height:16px; background:var(--accent); border-radius:3px; min-width:2px; }
+  .q-bar .lbl { font-size:12px; color:var(--sub); white-space:nowrap; }
+  .q-bar .val { font-size:12px; font-weight:600; white-space:nowrap; }
+  @media (max-width:900px){ .grid3{ grid-template-columns:1fr; } }
+  @media (max-width:720px){ .grid{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>解く アクセス分析ダッシュボード <span id="sample" class="badge" style="display:none">サンプルデータ</span></h1>
+  <div class="meta" id="meta">読み込み中…</div>
+</header>
+<main>
+  <!-- 1. 全般 -->
+  <h2>① 全般（サイト全体の概観）</h2>
+  <div class="cards" id="kpis"></div>
+  <div class="grid" style="margin-top:14px">
+    <div class="panel"><h3>セッション推移</h3><canvas id="chTs"></canvas></div>
+    <div class="panel"><h3>流入チャネル</h3><canvas id="chCh"></canvas></div>
+    <div class="panel"><h3>デバイス</h3><canvas id="chDev"></canvas></div>
+    <div class="panel"><h3>人気ページ Top</h3><table id="tblPages"><thead><tr><th>ページ</th><th class="r">PV</th></tr></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- 2. 国・検索キーワード -->
+  <h2>② 訪問者の国・検索キーワード</h2>
+  <div class="grid3">
+    <div class="panel"><h3>国別セッション</h3><canvas id="chCountry"></canvas></div>
+    <div class="panel" style="grid-column:span 2"><h3>検索キーワード Top（Search Console）</h3><div id="searchQueries"><p style="color:var(--sub);font-size:13px">Search Console 未接続（接続すると検索キーワードが表示されます）</p></div></div>
+  </div>
+
+  <!-- 3. note導線 -->
+  <h2 class="note-sec">③ note導線（note ⇄ サイト）</h2>
+  <div class="cards" id="noteKpis"></div>
+  <div class="grid" style="margin-top:14px">
+    <div class="panel note-highlight"><h3>note → サイト 流入推移</h3><canvas id="chNoteIn"></canvas></div>
+    <div class="panel note-highlight"><h3>noteからの着地ページ</h3><table id="tblNoteLp"><thead><tr><th>ページ</th><th class="r">セッション</th></tr></thead><tbody></tbody></table></div>
+    <div class="panel"><h3>流入元ランキング</h3><canvas id="chRef"></canvas></div>
+    <div class="panel"><h3>note導線ファネル</h3><canvas id="chFunnel"></canvas></div>
+  </div>
+
+  <!-- 4. 講評 -->
+  <h2 id="reviewsHead" style="display:none">④ 講評（週次・月次レビュー）</h2>
+  <div id="reviews"></div>
+</main>
+
+<script>window.__GA_DATA__ = {"generated_at": "2026-07-15 (サンプル)", "is_sample": true, "property_id": "407108779", "site_name": "toku-akiya-introduction.com", "period": {"start": "2026-06-15", "end": "2026-07-15", "label": "直近30日"}, "overview": {"users": 820, "sessions": 1050, "pageviews": 3200, "prev": {"users": 710, "sessions": 890, "pageviews": 2780}}, "timeseries": {"dates": ["06/15", "06/18", "06/21", "06/24", "06/27", "06/30", "07/03", "07/06", "07/09", "07/12", "07/15"], "sessions": [28, 35, 32, 41, 38, 45, 50, 42, 55, 48, 60]}, "channels": [{"name": "Organic Search", "sessions": 480}, {"name": "Direct", "sessions": 280}, {"name": "Referral", "sessions": 150}, {"name": "Organic Social", "sessions": 95}, {"name": "Email", "sessions": 25}, {"name": "Paid Search", "sessions": 20}], "top_pages": [{"path": "/", "title": "トップページ", "views": 890}, {"path": "/akiya", "title": "空き家一覧", "views": 420}, {"path": "/about", "title": "解くについて", "views": 310}, {"path": "/contact", "title": "お問い合わせ", "views": 180}, {"path": "/blog", "title": "ブログ", "views": 150}, {"path": "/akiya/shimane-001", "title": "出雲市大社町 古民家", "views": 120}], "devices": [{"name": "mobile", "sessions": 580}, {"name": "desktop", "sessions": 410}, {"name": "tablet", "sessions": 60}], "countries": [{"name": "Japan", "sessions": 920}, {"name": "United States", "sessions": 45}, {"name": "Taiwan", "sessions": 22}, {"name": "Hong Kong", "sessions": 18}, {"name": "Australia", "sessions": 15}, {"name": "United Kingdom", "sessions": 12}, {"name": "France", "sessions": 8}, {"name": "Germany", "sessions": 5}, {"name": "South Korea", "sessions": 3}, {"name": "Canada", "sessions": 2}], "search_queries": [{"query": "島根 空き家", "clicks": 45, "impressions": 820, "ctr": 5.5, "position": 8.2}, {"query": "出雲 古民家", "clicks": 32, "impressions": 510, "ctr": 6.3, "position": 6.8}, {"query": "解く 空き家", "clicks": 28, "impressions": 380, "ctr": 7.4, "position": 3.2}, {"query": "松江 空き家 移住", "clicks": 22, "impressions": 420, "ctr": 5.2, "position": 9.1}, {"query": "山陰 移住 古民家", "clicks": 18, "impressions": 350, "ctr": 5.1, "position": 11.4}, {"query": "島根県 空き家バンク", "clicks": 15, "impressions": 290, "ctr": 5.2, "position": 12.3}, {"query": "toku akiya", "clicks": 12, "impressions": 60, "ctr": 20.0, "position": 1.5}, {"query": "雲南 古民家 改修", "clicks": 8, "impressions": 180, "ctr": 4.4, "position": 14.2}, {"query": "shimane vacant house", "clicks": 6, "impressions": 140, "ctr": 4.3, "position": 15.8}, {"query": "大田市 空き家", "clicks": 5, "impressions": 120, "ctr": 4.2, "position": 18.0}], "note_events": [{"date": "06/20", "title": "改修事例インタビュー"}, {"date": "07/05", "title": "地域コミュニティレポート"}], "note": {"inbound_total": 85, "inbound_timeseries": {"dates": ["06/15", "06/21", "06/27", "07/03", "07/09", "07/15"], "sessions": [8, 12, 10, 18, 15, 22]}, "landing_pages": [{"path": "/", "sessions": 35}, {"path": "/akiya", "sessions": 28}, {"path": "/about", "sessions": 12}, {"path": "/contact", "sessions": 10}], "outbound_clicks": 32, "funnel": [{"step": "サイト訪問（全体）", "value": 820}, {"step": "note → サイト流入", "value": 85}, {"step": "サイト → note離脱クリック", "value": 32}], "referral_sources": [{"name": "google", "sessions": 480}, {"name": "(direct)", "sessions": 280}, {"name": "note.com", "sessions": 85}, {"name": "instagram.com", "sessions": 45}, {"name": "t.co", "sessions": 30}, {"name": "yahoo.co.jp", "sessions": 25}]}};
+window.__GA_REVIEWS__ = [];</script>
+<script>
+const COL = ['#0d9488','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#64748b','#2563eb'];
+try { Chart.register(window['chartjs-plugin-annotation']); } catch(e){}
+
+function noteAnn(events){
+  const a = {};
+  (events||[]).forEach((e,i) => {
+    a['n'+i] = {
+      type:'line', scaleID:'x', value:e.date,
+      borderColor:'rgba(139,92,246,.65)', borderWidth:1, borderDash:[4,3],
+      label:{display:true, content:e.title, position:'start',
+             backgroundColor:'rgba(139,92,246,.85)', color:'#fff',
+             font:{size:9}, padding:3}
+    };
+  });
+  return a;
+}
+
+async function load(){
+  if (window.__GA_DATA__) { render(window.__GA_DATA__); renderReviews(); return; }
+  let data;
+  try { data = await (await fetch('./data.json?_='+Date.now())).json(); }
+  catch(e){ data = await (await fetch('./data_sample.json?_='+Date.now())).json(); }
+  render(data); renderReviews();
+}
+
+function renderReviews(){
+  const rv = window.__GA_REVIEWS__ || [];
+  if(!rv.length) return;
+  document.getElementById('reviewsHead').style.display='';
+  const top = rv[0];
+  const block = r => `<div class="panel" style="margin-top:10px"><h3>${r.type}・${r.date}${r.period?'（'+r.period+'）':''}</h3>`
+    + (r.title?`<div style="font-weight:700;margin-bottom:6px">${r.title}</div>`:'')
+    + `<div style="font-size:13px;line-height:1.9">${r.html}</div></div>`;
+  let h = `<div class="panel" style="border-left:4px solid var(--accent)"><h3>最新の講評（${top.type}・${top.date}）</h3>`
+    + (top.title?`<div style="font-weight:700;margin-bottom:6px;font-size:15px">${top.title}</div>`:'')
+    + `<div style="font-size:14px;line-height:1.9">${top.html}</div></div>`;
+  if(rv.length>1){
+    h += `<details style="margin-top:12px"><summary style="cursor:pointer;color:var(--sub);font-size:13px;padding:6px 0">過去の講評をすべて表示（${rv.length}件）</summary>`
+      + rv.map(block).join('') + `</details>`;
+  }
+  document.getElementById('reviews').innerHTML = h;
+}
+
+function pct(cur,prev){
+  if(!prev) return '';
+  const d = ((cur-prev)/prev*100);
+  const s = d>=0 ? '▲' : '▼';
+  const c = d>=0 ? 'up' : 'down';
+  return `<span class="${c}">${s} ${Math.abs(d).toFixed(1)}%（前期間比）</span>`;
+}
+
+function render(d){
+  document.getElementById('meta').textContent =
+    `期間：${d.period.label}（${d.period.start} 〜 ${d.period.end}）／生成：${d.generated_at}　${d.site_name}`;
+  if(d.is_sample) document.getElementById('sample').style.display='inline-block';
+
+  // KPI
+  const o = d.overview;
+  document.getElementById('kpis').innerHTML = [
+    ['ユーザー数',o.users,o.prev.users],
+    ['セッション',o.sessions,o.prev.sessions],
+    ['ページビュー',o.pageviews,o.prev.pageviews]
+  ].map(([l,c,p])=>
+    `<div class="card"><div class="label">${l}</div><div class="num">${c.toLocaleString()}</div><div class="delta">${pct(c,p)}</div></div>`
+  ).join('');
+
+  // Timeseries
+  new Chart(chTs,{type:'line',data:{labels:d.timeseries.dates,datasets:[{label:'セッション',data:d.timeseries.sessions,borderColor:COL[0],backgroundColor:'rgba(13,148,136,.1)',fill:true,tension:.3}]},options:opt(false,noteAnn(d.note_events))});
+
+  // Channels
+  new Chart(chCh,{type:'bar',data:{labels:d.channels.map(c=>c.name),datasets:[{data:d.channels.map(c=>c.sessions),backgroundColor:COL}]},options:opt(true)});
+
+  // Devices
+  new Chart(chDev,{type:'doughnut',data:{labels:d.devices.map(c=>c.name),datasets:[{data:d.devices.map(c=>c.sessions),backgroundColor:COL}]},options:{plugins:{legend:{position:'bottom'}}}});
+
+  // Top pages
+  document.querySelector('#tblPages tbody').innerHTML = d.top_pages.map(p=>
+    `<tr><td>${p.title||p.path}<br><span style="color:#94a3b8;font-size:11px">${p.path}</span></td><td class="r">${p.views.toLocaleString()}</td></tr>`
+  ).join('');
+
+  // === Country ===
+  const ct = d.countries || [];
+  if(ct.length){
+    new Chart(chCountry,{type:'bar',data:{labels:ct.map(c=>c.name),datasets:[{data:ct.map(c=>c.sessions),backgroundColor:COL}]},options:opt(true)});
+  }
+
+  // === Search Queries ===
+  const sq = d.search_queries || [];
+  if(sq.length){
+    const maxClk = Math.max(...sq.map(q=>q.clicks),1);
+    document.getElementById('searchQueries').innerHTML =
+      `<table><thead><tr><th>キーワード</th><th class="r">クリック</th><th class="r">表示回数</th><th class="r">CTR</th><th class="r">順位</th></tr></thead><tbody>`
+      + sq.map(q =>
+        `<tr><td>${q.query}</td><td class="r">${q.clicks}</td><td class="r">${q.impressions.toLocaleString()}</td><td class="r">${q.ctr}%</td><td class="r">${q.position}</td></tr>`
+      ).join('')
+      + `</tbody></table>`;
+  }
+
+  // === note ===
+  const n = d.note;
+
+  document.getElementById('noteKpis').innerHTML = [
+    ['note → サイト流入', n.inbound_total],
+    ['サイト → noteクリック', n.outbound_clicks],
+  ].map(([l,c])=>
+    `<div class="card note-highlight"><div class="label">${l}</div><div class="num">${c.toLocaleString()}</div></div>`
+  ).join('');
+
+  if(n.inbound_timeseries && n.inbound_timeseries.dates.length){
+    new Chart(chNoteIn,{type:'line',data:{labels:n.inbound_timeseries.dates,datasets:[{label:'noteからのセッション',data:n.inbound_timeseries.sessions,borderColor:'#8b5cf6',backgroundColor:'rgba(139,92,246,.1)',fill:true,tension:.3}]},options:opt(false,noteAnn(d.note_events))});
+  }
+
+  document.querySelector('#tblNoteLp tbody').innerHTML = (n.landing_pages||[]).map(p=>
+    `<tr><td>${p.path}</td><td class="r">${p.sessions}</td></tr>`
+  ).join('');
+
+  const refs = (n.referral_sources||[]).slice(0,8);
+  const refColors = refs.map(r => r.name.includes('note.com') ? '#8b5cf6' : COL[6]);
+  new Chart(chRef,{type:'bar',data:{labels:refs.map(r=>r.name),datasets:[{data:refs.map(r=>r.sessions),backgroundColor:refColors}]},options:opt(true)});
+
+  new Chart(chFunnel,{type:'bar',data:{labels:n.funnel.map(f=>f.step),datasets:[{data:n.funnel.map(f=>f.value),backgroundColor:[COL[0],'#8b5cf6','#f59e0b']}]},options:{indexAxis:'y',plugins:{legend:{display:false}}}});
+}
+
+function opt(noLegend,ann){
+  const o = {plugins:{legend:{display:!noLegend,position:'bottom'}},scales:{y:{beginAtZero:true}}};
+  if(ann) o.plugins.annotation = {annotations:ann};
+  return o;
+}
+
+load();
+</script>
+</body>
+</html>
