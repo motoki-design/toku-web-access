@@ -7,7 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 <style>
-  :root { --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb; --accent:#0d9488; --bg:#f8fafc; --note:#8b5cf6; }
+  :root { --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb; --accent:#0d9488; --bg:#f8fafc; --note:#8b5cf6; --own:#ea580c; }
   * { box-sizing: border-box; }
   body { margin:0; font-family:"Yu Gothic","Meiryo",sans-serif; background:var(--bg); color:var(--ink); }
   header { background:#fff; border-bottom:1px solid var(--line); padding:16px 24px; }
@@ -39,6 +39,25 @@
   .q-bar .val { font-size:12px; font-weight:600; white-space:nowrap; }
   .news-sec { border-left-color: var(--accent); }
   .news-kpi { border-left:4px solid var(--accent); }
+  h2.own-sec { border-left-color: var(--own); }
+  .own-hl { border-left:4px solid var(--own); }
+  .warn { background:#fffbeb; border:1px solid #fde68a; color:#92400e; border-radius:10px;
+          padding:12px 14px; font-size:13px; line-height:1.7; margin-bottom:12px; }
+  .warn b { color:#b45309; }
+  .tag { display:inline-block; font-size:11px; padding:1px 7px; border-radius:999px; margin-right:4px; }
+  .tag-utm { background:#d1fae5; color:#065f46; }
+  .tag-ref { background:#e0e7ff; color:#3730a3; }
+  .tag-none { background:#f1f5f9; color:#64748b; }
+  #tblOwn { table-layout:fixed; }
+  #tblOwn th { white-space:nowrap; }
+  #tblOwn th:nth-child(1),#tblOwn td:nth-child(1){ width:15%; }
+  #tblOwn th:nth-child(2),#tblOwn td:nth-child(2){ width:9%; }
+  #tblOwn th:nth-child(3),#tblOwn td:nth-child(3){ width:13%; }
+  #tblOwn th:nth-child(4),#tblOwn td:nth-child(4){ width:9%; }
+  #tblOwn th:nth-child(5),#tblOwn td:nth-child(5){ width:11%; }
+  #tblOwn th:nth-child(6),#tblOwn td:nth-child(6){ width:13%; }
+  #tblOwn td:nth-child(7){ word-break:break-all; line-height:1.6; }
+  #tblOwn td .delta,#tblOwn td span.up,#tblOwn td span.down { white-space:nowrap; font-size:11px; }
   @media (max-width:900px){ .grid3{ grid-template-columns:1fr; } }
   @media (max-width:720px){ .grid{ grid-template-columns:1fr; } }
 </style>
@@ -93,13 +112,31 @@
     </table>
   </div>
 
-  <!-- 4. 講評 -->
-  <h2 id="reviewsHead" style="display:none">④ 講評（週次・月次レビュー）</h2>
+  <!-- 4. 誘導チャネル別 -->
+  <h2 class="own-sec" id="ownHead" style="display:none">④ 誘導チャネル別の効果（自社4チャネル → 解く公式サイト）</h2>
+  <div id="ownSection" style="display:none">
+    <div id="utmWarn" class="warn" style="display:none"></div>
+    <div class="cards" id="ownKpis"></div>
+    <div class="grid" style="margin-top:14px">
+      <div class="panel own-hl"><h3>チャネル別 流入推移</h3><canvas id="chOwnTs"></canvas></div>
+      <div class="panel own-hl"><h3>チャネル別 比較</h3><canvas id="chOwnBar"></canvas></div>
+    </div>
+    <div class="panel" style="margin-top:14px">
+      <h3>チャネル別 明細（セッションは下限値：UTM未付与分は Direct に埋もれる）</h3>
+      <table id="tblOwn">
+        <thead><tr><th>チャネル</th><th class="r">セッション</th><th class="r">前期比</th><th class="r">ユーザー</th><th class="r">エンゲージ率</th><th>計測の内訳</th><th>主な着地ページ</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 5. 講評 -->
+  <h2 id="reviewsHead" style="display:none">⑤ 講評（週次・月次レビュー）</h2>
   <div id="reviews"></div>
 </main>
 
-<script>window.__GA_DATA__ = {"generated_at": "2026-07-21 21:03", "is_sample": false, "property_id": "407108779", "site_name": "toku-akiya-introduction.com", "period": {"start": "2026-06-22", "end": "2026-07-21", "label": "直近30日"}, "overview": {"users": 161, "sessions": 191, "pageviews": 357, "prev": {"users": 149, "sessions": 172, "pageviews": 304}}, "timeseries": {"dates": ["06/22", "06/23", "06/24", "06/25", "06/26", "06/27", "06/28", "06/29", "06/30", "07/01", "07/02", "07/03", "07/04", "07/05", "07/06", "07/07", "07/08", "07/09", "07/10", "07/11", "07/12", "07/13", "07/14", "07/15", "07/16", "07/17", "07/18", "07/19", "07/20", "07/21"], "sessions": [5, 7, 4, 3, 7, 10, 3, 4, 8, 11, 7, 9, 5, 3, 21, 1, 8, 5, 8, 2, 3, 13, 14, 4, 9, 4, 4, 3, 1, 7]}, "channels": [{"name": "Direct", "sessions": 92}, {"name": "Organic Search", "sessions": 53}, {"name": "Referral", "sessions": 44}, {"name": "Organic Social", "sessions": 2}], "top_pages": [{"path": "/", "title": "解く TOKU official website - 解く TOKU プロジェクトでは、この《循環型建築》の視点を取り戻し、【解く】ことで、移築・改修、素材としての活用を行い、社会課題である空き家を地域資源へと変える取り組みを行っています。", "views": 120}, {"path": "/", "title": "noteで「解く」の連載を始めました - 解く TOKU official website", "views": 19}, {"path": "/database/", "title": "空き家データベース - 解く TOKU official website", "views": 16}, {"path": "/tour/", "title": "空き家ツアー - 解く TOKU official website", "views": 15}, {"path": "/contact/", "title": "Contact - 解く TOKU official website", "views": 12}, {"path": "/material/", "title": "マテリアル - 解く TOKU official website", "views": 11}, {"path": "/database/443.html/", "title": "安来の豪農民家 - 解く TOKU official website", "views": 10}, {"path": "/database/457.html/", "title": "佐田の茅葺民家 - 解く TOKU official website", "views": 10}, {"path": "/en/tour/", "title": "Vacant House Tour - 解く TOKU official website", "views": 10}, {"path": "/topics/", "title": "topics - 解く TOKU official website", "views": 10}], "devices": [{"name": "desktop", "sessions": 149}, {"name": "mobile", "sessions": 41}, {"name": "tablet", "sessions": 1}], "countries": [{"name": "Japan", "sessions": 126}, {"name": "Singapore", "sessions": 22}, {"name": "United States", "sessions": 10}, {"name": "China", "sessions": 5}, {"name": "Australia", "sessions": 3}, {"name": "Canada", "sessions": 3}, {"name": "Germany", "sessions": 3}, {"name": "France", "sessions": 2}, {"name": "Malaysia", "sessions": 2}, {"name": "Netherlands", "sessions": 2}], "search_queries": [{"query": "空き家ツアー", "clicks": 3, "impressions": 6, "ctr": 50.0, "position": 3.8}, {"query": "\"toku\" official website", "clicks": 0, "impressions": 14, "ctr": 0, "position": 8.4}, {"query": "akue toku", "clicks": 0, "impressions": 1, "ctr": 0, "position": 8}, {"query": "demolition yard near me", "clicks": 0, "impressions": 1, "ctr": 0, "position": 3}, {"query": "gotoku", "clicks": 0, "impressions": 1, "ctr": 0, "position": 68}, {"query": "itiku", "clicks": 0, "impressions": 1, "ctr": 0, "position": 5}, {"query": "japan building materials market", "clicks": 0, "impressions": 2, "ctr": 0, "position": 76.5}, {"query": "japanese house tours", "clicks": 0, "impressions": 2, "ctr": 0, "position": 18}, {"query": "jav house visit", "clicks": 0, "impressions": 1, "ctr": 0, "position": 9}, {"query": "jittoku", "clicks": 0, "impressions": 1, "ctr": 0, "position": 43}, {"query": "jutaku", "clicks": 0, "impressions": 1, "ctr": 0, "position": 64}, {"query": "kã¥â toku-in", "clicks": 0, "impressions": 2, "ctr": 0, "position": 42.5}, {"query": "lumber used", "clicks": 0, "impressions": 1, "ctr": 0, "position": 8}, {"query": "meaning of toku", "clicks": 0, "impressions": 3, "ctr": 0, "position": 5.7}, {"query": "reclaimed beams for sale near me", "clicks": 0, "impressions": 1, "ctr": 0, "position": 6}, {"query": "salvaged materials", "clicks": 0, "impressions": 1, "ctr": 0, "position": 1}, {"query": "second hand building materials near me", "clicks": 0, "impressions": 1, "ctr": 0, "position": 6}, {"query": "soutoku", "clicks": 0, "impressions": 2, "ctr": 0, "position": 26}, {"query": "to ku", "clicks": 0, "impressions": 2, "ctr": 0, "position": 35.5}, {"query": "to-ku", "clicks": 0, "impressions": 1, "ctr": 0, "position": 9}], "note_events": [], "news_events": [{"date": "07/21", "title": "noteで「解く」の連載を始めました"}], "news": {"pages": [{"path": "/topics/", "title": "topics - 解く TOKU official website", "views": 10}, {"path": "/topics/816.html/", "title": "noteで「解く」の連載を始めました - 解く TOKU official website", "views": 4}, {"path": "/en/topics/828.html/", "title": "“TOKU” Column Series Launched on note - 解く TOKU official website", "views": 2}, {"path": "/topics/1.html/", "title": "TOKU Website open - 解く TOKU official website", "views": 2}, {"path": "/en/topics/", "title": "topics - 解く TOKU official website", "views": 1}], "total_pv": 19, "timeseries": {"dates": ["06/27", "07/03", "07/06", "07/08", "07/09", "07/13", "07/20", "07/21"], "views": [1, 2, 4, 1, 1, 1, 1, 8]}}, "note": {"inbound_total": 1, "inbound_timeseries": {"dates": ["07/19"], "sessions": [1]}, "landing_pages": [{"path": "/", "sessions": 1}], "outbound_clicks": 6, "funnel": [{"step": "サイト訪問（全体）", "value": 161}, {"step": "note → サイト流入", "value": 1}, {"step": "サイト → note離脱クリック", "value": 6}], "referral_sources": [{"name": "(direct)", "sessions": 92}, {"name": "google", "sessions": 49}, {"name": "everyplan.co.jp", "sessions": 37}, {"name": "yahoo", "sessions": 4}, {"name": "facebook.com", "sessions": 2}, {"name": "sdgs-iwasazaidan.com", "sessions": 2}, {"name": "note.com", "sessions": 1}, {"name": "prtimes.jp", "sessions": 1}, {"name": "sanin-chuo.co.jp", "sessions": 1}, {"name": "service.smt.docomo.ne.jp", "sessions": 1}, {"name": "zeyao.net", "sessions": 1}]}};
-window.__GA_REVIEWS__ = [{"date": "2026-07-20", "type": "週次", "period": "2026-06-21〜2026-07-20", "title": "微増基調、note→サイト流入が初の1件・everyplan経由37が下支え", "html": "直近30日はユーザー161（前期154、+4.5%）、セッション186（+3.3%）、PV337（+9.4%）と微増基調。日別では7/13(月)13・7/14(火)14と週明けにまとまった動きがあった。発見は3点。第一に、6/21公開のnote記事以降ゼロが続いていたnote→サイト流入が7/19に初めて1件記録された。数は最小だが、記事末尾リンクの検証を始めた矢先の初期シグナルとして継続観察したい（サイト→noteクリックは依然0）。第二に、Referral 44のうちeveryplan.co.jp経由が37と大半を占め、本体サイトが解くへの主要な送客路になっている。第三に検索面では「空き家ツアー」がクリック3・CTR50%・平均3.8位と引き続き質の高い入口で、「toku」単独は表示37に対しクリック0（8.0位）と取りこぼしが続く。海外はシンガポール22・米国11など計68セッション（約37%）で英語圏の関心は継続。物件ページは安来の豪農民家・佐田の茅葺民家が各9PV。次週は①note新記事の公開と流入の再現確認、②「toku」検索の受け皿（タイトル・ディスクリプション）の点検、③空き家ツアーページの内容拡充の継続——の3点を提案する。"}, {"date": "2026-07-15", "type": "週次", "period": "2026-06-16〜2026-07-15", "title": "全体は横ばい、「空き家ツアー」CTR50%と海外4割が今週の発見", "html": "直近30日はユーザー163（前期159、+2.5%）、セッション186（▲1.6%）、PV352（+3.8%）とほぼ横ばい。流入はDirect 89・検索51・Referral 42で、ピークは7/6（21セッション）。発見は3点。第一に検索では「空き家ツアー」がクリック3・表示6・CTR50%・平均順位3.8位と、少数ながら極めて質の高い入口になっている。表示の多くは英語クエリ（japanese house tours、japan building materials market等）で、英語圏からの発見が始まっている。第二に海外アクセスの厚さで、日本114セッションに対し海外が約4割、シンガポール24・米国10。英語版ツアーページ（/en/tour/）が11PVと日本語版（14PV）に迫る。第三にnote連動の不全で、6/21公開の「茅葺き屋根は伝統技術の結晶」以降もnote→サイト流入0・サイト→noteクリック0。記事は読まれてもサイトへの導線が機能していない。次週は①note記事末尾にサイトリンクを明記して流入を検証、②「空き家ツアー」ページの内容拡充（勝ちワードの受け皿強化）、③トップから英語ページへの案内の視認性点検——の3点を提案する。"}];</script>
+<script>window.__GA_DATA__ = {"generated_at": "2026-07-26 08:03", "is_sample": false, "property_id": "407108779", "site_name": "toku-akiya-introduction.com", "period": {"start": "2026-06-27", "end": "2026-07-26", "label": "直近30日"}, "overview": {"users": 171, "sessions": 212, "pageviews": 438, "prev": {"users": 156, "sessions": 181, "pageviews": 309}}, "timeseries": {"dates": ["06/27", "06/28", "06/29", "06/30", "07/01", "07/02", "07/03", "07/04", "07/05", "07/06", "07/07", "07/08", "07/09", "07/10", "07/11", "07/12", "07/13", "07/14", "07/15", "07/16", "07/17", "07/18", "07/19", "07/20", "07/21", "07/22", "07/23", "07/24", "07/25", "07/26"], "sessions": [10, 3, 4, 8, 11, 7, 9, 5, 3, 21, 1, 8, 5, 8, 2, 3, 13, 14, 4, 9, 4, 4, 3, 1, 17, 11, 8, 14, 2, 1]}, "channels": [{"name": "Direct", "sessions": 100}, {"name": "Organic Search", "sessions": 60}, {"name": "Referral", "sessions": 48}, {"name": "AI Assistant", "sessions": 2}, {"name": "Organic Social", "sessions": 2}], "top_pages": [{"path": "/", "title": "解く TOKU official website - 解く TOKU プロジェクトでは、この《循環型建築》の視点を取り戻し、【解く】ことで、移築・改修、素材としての活用を行い、社会課題である空き家を地域資源へと変える取り組みを行っています。", "views": 128}, {"path": "/topics/816.html/", "title": "noteで「解く」の連載を始めました - 解く TOKU official website", "views": 39}, {"path": "/topics/", "title": "topics - 解く TOKU official website", "views": 22}, {"path": "/", "title": "noteで「解く」の連載を始めました - 解く TOKU official website", "views": 19}, {"path": "/database/", "title": "空き家データベース - 解く TOKU official website", "views": 16}, {"path": "/tour/", "title": "空き家ツアー - 解く TOKU official website", "views": 16}, {"path": "/contact/", "title": "Contact - 解く TOKU official website", "views": 15}, {"path": "/whats-toku/", "title": "What’s TOKU - 解く TOKU official website", "views": 12}, {"path": "/database/443.html/", "title": "安来の豪農民家 - 解く TOKU official website", "views": 11}, {"path": "/material/", "title": "マテリアル - 解く TOKU official website", "views": 11}], "devices": [{"name": "desktop", "sessions": 168}, {"name": "mobile", "sessions": 44}, {"name": "tablet", "sessions": 1}], "countries": [{"name": "Japan", "sessions": 146}, {"name": "Singapore", "sessions": 19}, {"name": "China", "sessions": 10}, {"name": "United States", "sessions": 10}, {"name": "Germany", "sessions": 4}, {"name": "Australia", "sessions": 3}, {"name": "Canada", "sessions": 2}, {"name": "Indonesia", "sessions": 2}, {"name": "Malaysia", "sessions": 2}, {"name": "Netherlands", "sessions": 2}], "search_queries": [{"query": "空き家ツアー", "clicks": 3, "impressions": 8, "ctr": 37.5, "position": 3.6}, {"query": "toku websites", "clicks": 1, "impressions": 19, "ctr": 5.3, "position": 24.9}, {"query": "解く", "clicks": 1, "impressions": 1282, "ctr": 0.1, "position": 8.4}, {"query": "\"toku\" official website", "clicks": 0, "impressions": 14, "ctr": 0, "position": 8.4}, {"query": "2nd hand timber for sale near me", "clicks": 0, "impressions": 1, "ctr": 0, "position": 3}, {"query": "akue toku", "clicks": 0, "impressions": 1, "ctr": 0, "position": 8}, {"query": "demolition yard near me", "clicks": 0, "impressions": 1, "ctr": 0, "position": 3}, {"query": "extra large chest of drawers", "clicks": 0, "impressions": 1, "ctr": 0, "position": 8}, {"query": "gotoku", "clicks": 0, "impressions": 1, "ctr": 0, "position": 68}, {"query": "itiku", "clicks": 0, "impressions": 1, "ctr": 0, "position": 5}, {"query": "japan building materials market", "clicks": 0, "impressions": 3, "ctr": 0, "position": 75.3}, {"query": "japanese building materials", "clicks": 0, "impressions": 1, "ctr": 0, "position": 63}, {"query": "japanese house tour", "clicks": 0, "impressions": 1, "ctr": 0, "position": 51}, {"query": "japanese house tours", "clicks": 0, "impressions": 2, "ctr": 0, "position": 18}, {"query": "jav house visit", "clicks": 0, "impressions": 1, "ctr": 0, "position": 9}, {"query": "jittoku", "clicks": 0, "impressions": 2, "ctr": 0, "position": 39.5}, {"query": "jutaku", "clicks": 0, "impressions": 1, "ctr": 0, "position": 64}, {"query": "kã¥â toku-in", "clicks": 0, "impressions": 3, "ctr": 0, "position": 44.3}, {"query": "lumber used", "clicks": 0, "impressions": 1, "ctr": 0, "position": 8}, {"query": "meaning of toku", "clicks": 0, "impressions": 3, "ctr": 0, "position": 5.7}], "note_events": [], "news_events": [{"date": "07/22", "title": "山陰経済ウィークリー（2026.7.7）に「解く"}, {"date": "07/21", "title": "noteで「解く」の連載を始めました"}], "owned_channels": {"rows": [{"key": "everyplan_hp", "label": "会社公式web お知らせ", "sessions": 40, "prev_sessions": 53, "users": 35, "engaged": 26, "engagement_rate": 65.0, "matched": {"utm": 0, "referral": 40}, "timeseries": {"dates": ["06/27", "06/28", "06/29", "06/30", "07/01", "07/02", "07/03", "07/04", "07/05", "07/06", "07/07", "07/08", "07/09", "07/10", "07/11", "07/12", "07/13", "07/14", "07/15", "07/16", "07/17", "07/18", "07/19", "07/20", "07/21", "07/22", "07/23", "07/24", "07/25", "07/26"], "sessions": [0, 0, 1, 4, 3, 3, 1, 2, 0, 3, 1, 1, 1, 1, 0, 0, 1, 4, 0, 2, 1, 2, 0, 0, 1, 2, 3, 3, 0, 0]}, "landing": [{"path": "/", "sessions": 32}, {"path": "(not set)", "sessions": 4}, {"path": "/topics/806.html/", "sessions": 4}]}, {"key": "facebook", "label": "会社Facebook", "sessions": 2, "prev_sessions": 3, "users": 2, "engaged": 1, "engagement_rate": 50.0, "matched": {"utm": 0, "referral": 2}, "timeseries": {"dates": ["06/27", "06/28", "06/29", "06/30", "07/01", "07/02", "07/03", "07/04", "07/05", "07/06", "07/07", "07/08", "07/09", "07/10", "07/11", "07/12", "07/13", "07/14", "07/15", "07/16", "07/17", "07/18", "07/19", "07/20", "07/21", "07/22", "07/23", "07/24", "07/25", "07/26"], "sessions": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, "landing": [{"path": "/?fbclid=IwZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQMMjU2MjgxMDQwNTU4AAEeK0bjnTA_dTYeFEKPkhx266ZAhPLxc7Pjw4-5gS2JenS7gOYfETVU_PF3Ahs_aem_s9gXYqYJwIipTfiC2tI74Q", "sessions": 1}, {"path": "/?fbclid=IwZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQMMjU2MjgxMDQwNTU4AAEeqsgs2l125OpUGGUnLMzDb4oIxI8vrrL2R1EocnPZJnVV_rb7HO5H02y2y-A_aem_ZVejpAF1Z719KiFJ25Be9w", "sessions": 1}]}, {"key": "note", "label": "解くnote", "sessions": 1, "prev_sessions": 1, "users": 1, "engaged": 1, "engagement_rate": 100.0, "matched": {"utm": 0, "referral": 1}, "timeseries": {"dates": ["06/27", "06/28", "06/29", "06/30", "07/01", "07/02", "07/03", "07/04", "07/05", "07/06", "07/07", "07/08", "07/09", "07/10", "07/11", "07/12", "07/13", "07/14", "07/15", "07/16", "07/17", "07/18", "07/19", "07/20", "07/21", "07/22", "07/23", "07/24", "07/25", "07/26"], "sessions": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]}, "landing": [{"path": "/", "sessions": 1}]}, {"key": "instagram", "label": "解くInstagram", "sessions": 0, "prev_sessions": 2, "users": 0, "engaged": 0, "engagement_rate": 0.0, "matched": {"utm": 0, "referral": 0}, "timeseries": {"dates": ["06/27", "06/28", "06/29", "06/30", "07/01", "07/02", "07/03", "07/04", "07/05", "07/06", "07/07", "07/08", "07/09", "07/10", "07/11", "07/12", "07/13", "07/14", "07/15", "07/16", "07/17", "07/18", "07/19", "07/20", "07/21", "07/22", "07/23", "07/24", "07/25", "07/26"], "sessions": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, "landing": []}], "total_sessions": 43, "prev_total_sessions": 59, "site_sessions": 212, "share_of_site": 20.3, "direct_sessions": 100, "utm": {"tagged": 0, "total": 43, "rate": 0.0}}, "news": {"pages": [{"path": "/topics/816.html/", "title": "noteで「解く」の連載を始めました - 解く TOKU official website", "views": 39}, {"path": "/topics/", "title": "topics - 解く TOKU official website", "views": 22}, {"path": "/topics/806.html/", "title": "山陰経済ウィークリー（2026.7.7）に「解く」事業が紹介されました - 解く TOKU official website", "views": 11}, {"path": "/en/topics/828.html/", "title": "“TOKU” Column Series Launched on note - 解く TOKU official website", "views": 3}, {"path": "/topics/1.html/", "title": "TOKU Website open - 解く TOKU official website", "views": 2}, {"path": "/en/topics/", "title": "topics - 解く TOKU official website", "views": 1}, {"path": "/en/topics/20.html/", "title": "TOKU Website open - 解く TOKU official website", "views": 1}], "total_pv": 79, "timeseries": {"dates": ["06/27", "07/03", "07/06", "07/08", "07/09", "07/13", "07/20", "07/21", "07/22", "07/23", "07/24"], "views": [1, 2, 4, 1, 1, 1, 1, 44, 19, 4, 1]}}, "note": {"inbound_total": 1, "inbound_timeseries": {"dates": ["07/19"], "sessions": [1]}, "landing_pages": [{"path": "/", "sessions": 1}], "outbound_clicks": 11, "funnel": [{"step": "サイト訪問（全体）", "value": 171}, {"step": "note → サイト流入", "value": 1}, {"step": "サイト → note離脱クリック", "value": 11}], "referral_sources": [{"name": "(direct)", "sessions": 100}, {"name": "google", "sessions": 57}, {"name": "everyplan.co.jp", "sessions": 40}, {"name": "sdgs-iwasazaidan.com", "sessions": 3}, {"name": "chatgpt.com", "sessions": 2}, {"name": "facebook.com", "sessions": 2}, {"name": "yahoo", "sessions": 2}, {"name": "bing", "sessions": 1}, {"name": "note.com", "sessions": 1}, {"name": "prtimes.jp", "sessions": 1}, {"name": "sanin-chuo.co.jp", "sessions": 1}, {"name": "service.smt.docomo.ne.jp", "sessions": 1}, {"name": "zeyao.net", "sessions": 1}]}};
+window.__GA_REVIEWS__ = [{"date": "2026-07-26", "type": "週次", "period": "06/27 - 07/26", "title": "7/21のNews投稿で全指標が上昇、サイト→noteクリックが初の11件", "html": "直近30日はユーザー171（前期156、+9.6%）、セッション212（+17.1%）、PV438（+41.7%）と全指標が伸びた。牽引は7/21のNews「noteで『解く』の連載を始めました」で、News系PVは当日44・翌日19、記事単体39PVとトップ（128）に次ぐ2位。7/21は17、7/24も14セッションと週後半まで高止まりし、News投稿が確実に山を作ると確認できた。サイト→noteクリックは11件と初めてまとまった数に。一方note→サイト流入は7/19の1件のみで往路は細い。チャネルはDirect100・検索60・Referral48（うちeveryplan.co.jp 40、前期53から減）。検索は「解く」が表示1282でクリック1（CTR0.1%、8.4位）と最大の取りこぼし、「空き家ツアー」はCTR37.5%・3.6位と良質。海外は66セッション（31%）でシンガポール19・中国と米国が各10。次週は①トップのtitle/description改稿で「解く」の表示を拾う、②note新記事とNews投稿の同時化を定型に、③note記事末尾にサイトへのリンクを追加。"}, {"date": "2026-07-20", "type": "週次", "period": "2026-06-21〜2026-07-20", "title": "微増基調、note→サイト流入が初の1件・everyplan経由37が下支え", "html": "直近30日はユーザー161（前期154、+4.5%）、セッション186（+3.3%）、PV337（+9.4%）と微増基調。日別では7/13(月)13・7/14(火)14と週明けにまとまった動きがあった。発見は3点。第一に、6/21公開のnote記事以降ゼロが続いていたnote→サイト流入が7/19に初めて1件記録された。数は最小だが、記事末尾リンクの検証を始めた矢先の初期シグナルとして継続観察したい（サイト→noteクリックは依然0）。第二に、Referral 44のうちeveryplan.co.jp経由が37と大半を占め、本体サイトが解くへの主要な送客路になっている。第三に検索面では「空き家ツアー」がクリック3・CTR50%・平均3.8位と引き続き質の高い入口で、「toku」単独は表示37に対しクリック0（8.0位）と取りこぼしが続く。海外はシンガポール22・米国11など計68セッション（約37%）で英語圏の関心は継続。物件ページは安来の豪農民家・佐田の茅葺民家が各9PV。次週は①note新記事の公開と流入の再現確認、②「toku」検索の受け皿（タイトル・ディスクリプション）の点検、③空き家ツアーページの内容拡充の継続——の3点を提案する。"}, {"date": "2026-07-15", "type": "週次", "period": "2026-06-16〜2026-07-15", "title": "全体は横ばい、「空き家ツアー」CTR50%と海外4割が今週の発見", "html": "直近30日はユーザー163（前期159、+2.5%）、セッション186（▲1.6%）、PV352（+3.8%）とほぼ横ばい。流入はDirect 89・検索51・Referral 42で、ピークは7/6（21セッション）。発見は3点。第一に検索では「空き家ツアー」がクリック3・表示6・CTR50%・平均順位3.8位と、少数ながら極めて質の高い入口になっている。表示の多くは英語クエリ（japanese house tours、japan building materials market等）で、英語圏からの発見が始まっている。第二に海外アクセスの厚さで、日本114セッションに対し海外が約4割、シンガポール24・米国10。英語版ツアーページ（/en/tour/）が11PVと日本語版（14PV）に迫る。第三にnote連動の不全で、6/21公開の「茅葺き屋根は伝統技術の結晶」以降もnote→サイト流入0・サイト→noteクリック0。記事は読まれてもサイトへの導線が機能していない。次週は①note記事末尾にサイトリンクを明記して流入を検証、②「空き家ツアー」ページの内容拡充（勝ちワードの受け皿強化）、③トップから英語ページへの案内の視認性点検——の3点を提案する。"}];</script>
 <script>
 const COL = ['#0d9488','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#64748b','#2563eb'];
 try { Chart.register(window['chartjs-plugin-annotation']); } catch(e){}
@@ -265,6 +302,9 @@ function render(d){
       }).join('')
     : '<tr><td colspan="6" style="color:var(--sub)">期間内の投稿がないか、前後データが不足しています</td></tr>';
 
+  // === 誘導チャネル別（自社4チャネル） ===
+  renderOwned(d);
+
   // === News section ===
   const nw = d.news;
   if(nw && (nw.total_pv > 0 || (nw.pages && nw.pages.length) || (d.news_events && d.news_events.length))){
@@ -280,6 +320,83 @@ function render(d){
       `<tr><td>${p.title||p.path}<br><span style="color:#94a3b8;font-size:11px">${p.path}</span></td><td class="r">${p.views.toLocaleString()}</td></tr>`
     ).join('') || '<tr><td colspan="2" style="color:var(--sub)">まだデータがありません（公開後に表示されます）</td></tr>';
   }
+}
+
+const OWN_COL = {everyplan_hp:'#ea580c', facebook:'#2563eb', note:'#8b5cf6', instagram:'#db2777'};
+
+// 着地ページの表示用に短くする。fbclid等の追跡クエリは種別だけ残す。
+function shortPath(p){
+  if(!p) return '—';
+  if(p === '(not set)') return '<span style="color:var(--sub)">（取得できず）</span>';
+  const q = p.indexOf('?');
+  if(q < 0) return esc(p);
+  const base = p.slice(0, q) || '/';
+  const params = p.slice(q + 1).split('&').map(kv => kv.split('=')[0]).filter(Boolean);
+  const uniq = [...new Set(params)].slice(0, 4);
+  return `${esc(base)} <span style="color:#94a3b8">?${esc(uniq.join('&'))}…</span>`;
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function renderOwned(d){
+  const oc = d.owned_channels;
+  if(!oc || !oc.rows) return;
+  document.getElementById('ownHead').style.display='';
+  document.getElementById('ownSection').style.display='';
+
+  // UTM付与率が100%未満なら、数字の読み方を明示する
+  const u = oc.utm || {rate:0, tagged:0, total:0};
+  if(u.rate < 100){
+    document.getElementById('utmWarn').style.display='';
+    document.getElementById('utmWarn').innerHTML =
+      `<b>この数字は「下限値」です。</b>　UTM付与率 <b>${u.rate}%</b>（${u.tagged}/${u.total}セッション）。`
+      + `UTMを付けていないリンクからの流入は、referrerが落ちると <b>Direct（${(oc.direct_sessions||0).toLocaleString()}セッション）</b>に埋もれます。`
+      + `特にInstagram・Facebookはアプリ内ブラウザでrefererを落とすため、実際より小さく出ます。`
+      + `<br>各投稿のリンクに <code>?utm_source=…&utm_medium=…&utm_campaign=…</code> を付けると、ここが実数になります。`;
+  }
+
+  // KPIカード（チャネルごと）
+  document.getElementById('ownKpis').innerHTML = oc.rows.map(r =>
+    `<div class="card" style="border-left:4px solid ${OWN_COL[r.key]||'#94a3b8'}">`
+    + `<div class="label">${r.label}</div>`
+    + `<div class="num">${r.sessions.toLocaleString()}</div>`
+    + `<div class="delta">${pct(r.sessions, r.prev_sessions)}</div></div>`
+  ).join('')
+  + `<div class="card"><div class="label">4チャネル合計／サイト全体</div>`
+  + `<div class="num">${oc.share_of_site}%</div>`
+  + `<div class="delta">${(oc.total_sessions||0).toLocaleString()} / ${(oc.site_sessions||0).toLocaleString()} セッション</div></div>`;
+
+  // 推移（4本の折れ線）
+  const anyTs = oc.rows.some(r => (r.timeseries?.sessions||[]).some(v=>v>0));
+  if(anyTs){
+    new Chart(chOwnTs,{type:'line',data:{
+      labels: oc.rows[0].timeseries.dates,
+      datasets: oc.rows.map(r=>({label:r.label, data:r.timeseries.sessions,
+        borderColor:OWN_COL[r.key], backgroundColor:OWN_COL[r.key], tension:.3, pointRadius:2}))
+    },options:opt(false,mkAnn(d.note_events,d.news_events))});
+  }
+
+  // 比較（横棒）
+  new Chart(chOwnBar,{type:'bar',data:{
+    labels: oc.rows.map(r=>r.label),
+    datasets:[{data:oc.rows.map(r=>r.sessions), backgroundColor:oc.rows.map(r=>OWN_COL[r.key])}]
+  },options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+
+  // 明細テーブル
+  document.querySelector('#tblOwn tbody').innerHTML = oc.rows.map(r=>{
+    const m = r.matched||{utm:0,referral:0};
+    const tags = (m.utm ? `<span class="tag tag-utm">UTM ${m.utm}</span>` : '')
+               + (m.referral ? `<span class="tag tag-ref">referral ${m.referral}</span>` : '')
+               + (!m.utm && !m.referral ? `<span class="tag tag-none">計測なし</span>` : '');
+    const lp = (r.landing||[]).length
+      ? (r.landing||[]).map(p=>`${shortPath(p.path)} <b>${p.sessions}</b>`).join('<br>')
+      : '<span style="color:var(--sub)">—</span>';
+    return `<tr><td><b style="color:${OWN_COL[r.key]}">${r.label}</b></td>`
+      + `<td class="r">${r.sessions.toLocaleString()}</td>`
+      + `<td class="r">${pct(r.sessions, r.prev_sessions)}</td>`
+      + `<td class="r">${r.users.toLocaleString()}</td>`
+      + `<td class="r">${r.engagement_rate}%</td>`
+      + `<td>${tags}</td><td style="font-size:12px">${lp}</td></tr>`;
+  }).join('');
 }
 
 function opt(noLegend,ann){
